@@ -29,12 +29,13 @@ class Communication:
             print(self.portName, " it's already closed")
 
     def getData(self):
-        
         if not self.dummyPlug:
-            value = self.ser.readline()  # read line (single value) from the serial port
-            decoded_bytes = str(value[0:len(value) - 2].decode("utf-8"))
-            #print(decoded_bytes)
-            value_chain = decoded_bytes.split(",")
+            if self.ser.in_waiting > 0:  # check if there is data waiting in the buffer
+                value = self.ser.readline()  # read line (single value) from the serial port
+                decoded_bytes = str(value[0:len(value) - 2].decode("utf-8"))
+                value_chain = decoded_bytes.split(",")
+            else:
+                value_chain = []  # no data available
         else:
             value_chain = [float(random.randint(0, 100)) for _ in range(12)]  # generate a random serial chain
 
