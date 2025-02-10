@@ -115,18 +115,20 @@ l11.addItem(ppm)
 # that represent the date you want to visualize
 def update():
     try:
-        value_chain = []
-        value_chain = ser.getData()
+        str_value_chain = []
+        str_value_chain = ser.getData()
+
+        value_chain = [float(item) for item in str_value_chain]
 
         if value_chain[0] != '': 
-            altitude.update(float(value_chain[4]))
-            time.update(float(value_chain[0]))
-            acceleration.update(float(value_chain[9]),float(value_chain[10]),float(value_chain[11]))
-            gyro.update(float(value_chain[6]),float(value_chain[7]),float(value_chain[8]))
-            pressure.update(float(value_chain[3]))
-            temperature.update(float(value_chain[2]))
-            ppm.update(float(value_chain[5]))
-            humidity.update(float(value_chain[1]))
+            altitude.update(value_chain[4])
+            time.update(value_chain[0])
+            acceleration.update(value_chain[9], value_chain[10], value_chain[11])
+            gyro.update(value_chain[6], value_chain[7], value_chain[8])
+            pressure.update(value_chain[3])
+            temperature.update(value_chain[2])
+            ppm.update(value_chain[5])
+            humidity.update(value_chain[1])
 
         data_base.guardar(value_chain)
     except IndexError as e:
