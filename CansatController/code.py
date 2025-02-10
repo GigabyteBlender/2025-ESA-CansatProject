@@ -24,7 +24,7 @@ dhtDevice = adafruit_dht.DHT11(board.GP22)
 i2c = busio.I2C(scl=board.GP15, sda=board.GP14)
 
 bmp280 = adafruit_bmp280.Adafruit_BMP280_I2C(i2c)
-bmp280.sea_level_pressure = 1013.25  # Set sea level pressure for altitude calculation
+bmp280.sea_level_pressure = 1024.5  # Set sea level pressure for altitude calculation
 
 bmi = bmi160.BMI160(i2c)
 
@@ -42,8 +42,6 @@ VCC = 5.0  # Supply voltage
 RZERO = 76.63  # Resistance of sensor in clean air
 PARA = 116.6020682
 PARB = 2.769034857
-
-BMP_ALT_CONST = 135
 
 def get_gyro():
     gx, gy, gz = bmi.gyro
@@ -106,7 +104,6 @@ while True:
 
         # bmp280 data
         temperature, pressure, altitude = bmp280_read()
-        altitude += BMP_ALT_CONST
 
         # mq135 data
         ppm = get_ppm()
