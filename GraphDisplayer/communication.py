@@ -11,14 +11,15 @@ class Communication:
 
     def __init__(self):
         self.baudrate = 115200
+        self.portName = 'COM5'
         print("the available ports are (if none appear, press any letter): ")
         for port in sorted(self.ports):
             # getting com list: https://stackoverflow.com/a/52809180
             print(("{}".format(port)))
         try:
-            self.ser = serial.Serial('COM5', self.baudrate, timeout=1)
+            self.ser = serial.Serial(self.portName, self.baudrate, timeout=1)
         except serial.serialutil.SerialException:
-            print("Can't open : ", self.portName)
+            print("Can't open:", self.portName)
             self.dummyPlug = True
             print("Dummy mode activated")
 
