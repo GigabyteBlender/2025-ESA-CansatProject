@@ -14,6 +14,7 @@ from graphs.graph_ppm import graph_ppm
 from graphs.graph_humidity import graph_humidity
 from dataBase import data_base
 from communication import Communication
+import ctypes
 
 class FlightMonitoringGUI:
     def __init__(self):
@@ -22,12 +23,16 @@ class FlightMonitoringGUI:
         pg.setConfigOption('foreground', (197, 198, 199))
 
         # Create the application and main window
-        self.app = QtWidgets.QApplication(sys.argv + ['-platform', 'windows:darkmode=1'])
+        if sys.platform.startswith('win'):  
+            self.app = QtWidgets.QApplication(sys.argv + ['-platform', 'windows:darkmode=1'])
+        else:
+            self.app = QtWidgets.QApplication(sys.argv)
         self.view = pg.GraphicsView()
         self.Layout = pg.GraphicsLayout()
         self.view.setCentralItem(self.Layout)
         self.view.show()
-        self.view.setWindowIcon(QtGui.QIcon('icon.png'))
+        if sys.platform.startswith('win'):
+            self.view.setWindowIcon(QtGui.QIcon('icon.png'))
         self.view.setWindowTitle('Flight Monitoring with Servo Control')
         self.view.resize(1200, 700)
 
@@ -121,7 +126,7 @@ class FlightMonitoringGUI:
         proxy3 = QtWidgets.QGraphicsProxyWidget()
         proxy3.setWidget(self.servo_control_widget)
         l1.nextRow()
-        l14 = l1.addLayout(rowspan=1)
+        l14 = l1.addLayout(rowspan=1, colspan=20, border=(83, 83, 83))
         l14.addItem(proxy3)
 
     def start_data_acquisition(self):
@@ -216,15 +221,26 @@ class ServoControl(QWidget):
         self.setStyleSheet("""
             QWidget {
                 background-color: rgb(33, 33, 33);
-                border: none;
             }
-            QLabel {
-                color: rgb(197, 198, 199);
+            QSlider::groove:horizontal {
+                height: 3px;
+                margin: 0px;
+                background-color: rgb(52, 59, 72);
+            }
+            QSlider::handle:horizontal {
+                background-color: rgb(29, 185, 84);
+                height: 10px;
+                width: 10px;
+                margin: -10px 0;
+                padding: -10px 0px;
+            }
+            QSlider::handle:horizontal:hover {
+                background-color: rgb(29, 130, 84);
             }
         """)
 
         # Slider for Servo 1
-        self.label_servo1 = QLabel("Servo 1 Angle: 90°")
+        self.label_servo1 = QLabel("Servo 1 Angle: 0°")
         self.slider_servo1 = QSlider(QtCore.Qt.Horizontal)
         self.slider_servo1.setMinimum(-90)
         self.slider_servo1.setMaximum(90)
@@ -232,7 +248,7 @@ class ServoControl(QWidget):
         self.slider_servo1.valueChanged.connect(self.update_servo1)
 
         # Slider for Servo 2
-        self.label_servo2 = QLabel("Servo 2 Angle: 90°")
+        self.label_servo2 = QLabel("Servo 2 Angle: 0°")
         self.slider_servo2 = QSlider(QtCore.Qt.Horizontal)
         self.slider_servo2.setMinimum(-90)
         self.slider_servo2.setMaximum(90)
