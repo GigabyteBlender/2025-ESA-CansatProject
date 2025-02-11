@@ -1,35 +1,46 @@
-# Import necessary libraries
 import digitalio
 import board
-import busio
-import analogio
-import time
-import radio
+import radio  # Assuming you have a separate `radio` module
 
-# timer
-start_time = time.monotonic()
+class RadioTransmitterReceiver:
+    def __init__(self):
+        # Set up onboard LED
+        self.led = digitalio.DigitalInOut(board.GP25)
+        self.led.direction = digitalio.Direction.OUTPUT
+        self.led.value = True  # Turn on LED initially
+        # Packet counter
+        self.packet_count = 0
 
-# Set up onboard LED
-led = digitalio.DigitalInOut(board.GP25)
-led.direction = digitalio.Direction.OUTPUT
-led.value = True  # Turn on LED
+    def prepare_packet(self):
+        """Prepare the data packet with elapsed time and packet count."""
+        return f"{self.packet_count}"
 
-# Initialize packet counter
-packet_count = 0
-# Main loop
-while True:
-    # Prepare data packet
-    elapsed_time = time.monotonic() - start_time
+    def send_packet(self):
+        """Send a packet via the radio."""
+        packet = self.prepare_packet()
+        try:
+            radio.send(packet)  # Use your radio module's send method
+            self.packet_count += 1
+        except Exception as e:
+            print(f"Error sending packet: {e}")
 
-    packet = "test"
+    def receive_packet(self):
+        """Check for incoming packets and print them."""
+        data = radio.try_read()  # Use your radio module's try_read method
+        if data != None:
+            try:
+                decoded_data = data.decode('utf-8')
+                print(decoded_data)
+            except Exception as e:
+                print(f"Error decoding data: {e}")
 
-    # Send data packet via radio
-    if packet is not None:
-        radio.send(packet)
-        # Increment packet counter
-        packet_count += 1
+    def run(self):
+        """Main loop function."""
+        while True:
+            self.send_packet()
+            self.receive_packet()
 
-    data = radio.try_read()
-    if data is not None:
-        data = data.decode('utf-8')
-        print(data)
+# Create an instance of the class and start the main loop
+if __name__ == "__main__":
+    app = RadioTransmitterReceiver()
+    app.run()
