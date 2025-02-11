@@ -1,4 +1,3 @@
-# Import necessary libraries
 import digitalio
 import board
 import busio
@@ -9,126 +8,170 @@ import adafruit_bmp280
 import radio
 import bmi160
 
-# timer
-start_time = time.monotonic()
-
-# Set up onboard LED
-led = digitalio.DigitalInOut(board.GP25)
-led.direction = digitalio.Direction.OUTPUT
-led.value = True  # Turn on LED
-
-# Initialize DHT11 temperature and humidity sensor
-dhtDevice = adafruit_dht.DHT11(board.GP22)
-
-# Set up I2C communication
-i2c = busio.I2C(scl=board.GP15, sda=board.GP14)
-
-bmp280 = adafruit_bmp280.Adafruit_BMP280_I2C(i2c)
-bmp280.sea_level_pressure = 1024.5  # Set sea level pressure for altitude calculation
-
-bmi = bmi160.BMI160(i2c)
-
-# Initialize packet counter
-packet_count = 0
-
-# Set up the analog input pin for MQ135 gas sensor
-mq135_pin = analogio.AnalogIn(board.GP28)
-
-# MQ135 sensor characteristics
+# Constants for MQ135 sensor
 VOLT_RESOLUTION = 65535  # 16-bit ADC
 VCC = 5.0  # Supply voltage
-
-# Calibration values for MQ135
 RZERO = 76.63  # Resistance of sensor in clean air
 PARA = 116.6020682
 PARB = 2.769034857
 
-def get_gyro():
-    gx, gy, gz = bmi.gyro
-    return gx, gy, gz
+
+class LED:
+    """Class to control the onboard LED."""
+    def __init__(self, pin):
+        self.led = digitalio.DigitalInOut(pin)
+        self.led.direction = digitalio.Direction.OUTPUT
+
+    def on(self):
+        self.led.value = True
+
+    def off(self):
+        self.led.value = False
 
 
-def get_acceleration():
-    ax, ay, az = bmi.acceleration
-    return ax, ay, az
+class DHT11Sensor:
+    """Class to handle the DHT11 temperature and humidity sensor."""
+    def __init__(self, pin):
+        self.sensor = adafruit_dht.DHT11(pin)
+
+    def read_humidity(self):
+        try:
+            return self.sensor.humidity
+        except RuntimeError as error:
+            print(f"DHT11 error: {error.args[0]}")
+            return None
 
 
-def get_ppm():
-    """Calculate gas concentration in ppm from MQ135 sensor"""
-    try:
-        # Read the analog value
-        raw_value = mq135_pin.value
-        # Convert to voltage
-        voltage = (raw_value / VOLT_RESOLUTION) * VCC
-        # Convert voltage to resistance (using 1k resistor)
-        rs = ((VCC - voltage) / voltage) * 1000  # 1k ohm load resistor
-        # Convert to ppm
-        ratio = rs / RZERO
-        ppm = PARA * (ratio ** -PARB)
+class BMP280Sensor:
+    """Class to handle the BMP280 temperature, pressure, and altitude sensor."""
+    def __init__(self, i2c, sea_level_pressure=1013.25):
+        self.sensor = adafruit_bmp280.Adafruit_BMP280_I2C(i2c)
+        self.sensor.sea_level_pressure = sea_level_pressure
 
-        return ppm * 1000000  # Multiply by 1,000,000 to scale up the value
-
-    except Exception as e:
-        print(f"Error reading MQ135 sensor: {e}")
-        return None
+    def read_data(self):
+        try:
+            temperature = self.sensor.temperature
+            pressure = self.sensor.pressure
+            altitude = self.sensor.altitude
+            return temperature, pressure, altitude
+        except Exception as e:
+            print(f"BMP280 error: {e}")
+            return None, None, None
 
 
-def bmp280_read():
-    """Read temperature, pressure, and altitude from BMP280 sensor"""
-    try:
-        pre = bmp280.pressure
-        alt = bmp280.altitude
-        temp = bmp280.temperature
-        return temp, pre, alt
-    except Exception as e:
-        print(f"Error reading BMP280 sensor: {e}")
-        return None, None, None
+class MQ135Sensor:
+    """Class to handle the MQ135 gas sensor."""
+    def __init__(self, analog_pin):
+        self.pin = analogio.AnalogIn(analog_pin)
+
+    def read_ppm(self):
+        try:
+            raw_value = self.pin.value
+            voltage = (raw_value / VOLT_RESOLUTION) * VCC
+            rs = ((VCC - voltage) / voltage) * 1000  # Calculate resistance
+            ratio = rs / RZERO
+            ppm = PARA * (ratio ** -PARB)
+            return ppm * 1000000  # Scale up value for better readability
+        except Exception as e:
+            print(f"MQ135 error: {e}")
+            return None
 
 
-def dht_read():
-    """Read humidity from DHT11 sensor"""
-    try:
-        humidity = dhtDevice.humidity
-        return humidity
-    except RuntimeError as error:
-        print(f"DHT11 error: {error.args[0]}")
-        return None
+class BMI160Sensor:
+    """Class to handle the BMI160 gyroscope and accelerometer."""
+    def __init__(self, i2c):
+        self.sensor = bmi160.BMI160(i2c)
+
+    def read_gyro(self):
+        try:
+            return self.sensor.gyro
+        except Exception as e:
+            print(f"BMI160 gyro error: {e}")
+            return None, None, None
+
+    def read_acceleration(self):
+        try:
+            return self.sensor.acceleration
+        except Exception as e:
+            print(f"BMI160 acceleration error: {e}")
+            return None, None, None
 
 
-# Main loop
-while True:
-    try:
-        # Reading senor data
-        # dht11 data
-        humidity = dht_read()
+class SensorSystem:
+    """Main class to manage all sensors and data transmission."""
+    def __init__(self):
+        # Initialize components and sensors
+        self.start_time = time.monotonic()
 
-        # bmp280 data
-        temperature, pressure, altitude = bmp280_read()
+        # Onboard LED setup
+        self.led = LED(board.GP25)
+        self.led.on()  # Turn on LED to indicate system is running
 
-        # mq135 data
-        ppm = get_ppm()
+        # I2C setup for BMP280 and BMI160 sensors
+        i2c = busio.I2C(scl=board.GP15, sda=board.GP14)
 
-        # gyro data
-        gx, gy, gz = get_gyro()
-        ax, ay, az = get_acceleration()
+        # Sensor initialization
+        self.dht11 = DHT11Sensor(board.GP22)
+        self.bmp280 = BMP280Sensor(i2c, sea_level_pressure=1024.5)
+        self.mq135 = MQ135Sensor(board.GP28)
+        self.bmi160 = BMI160Sensor(i2c)
 
-        if gx and ax == 0.0:
-            bmi = bmi160.BMI160(i2c)
+        # Packet counter for radio transmission
+        self.packet_count = 0
 
-        # Prepare data packet
-        elapsed_time = time.monotonic() - start_time
-        if all((humidity, temperature, pressure, altitude, ppm)):
-            packet = f"{elapsed_time:.2f},{humidity:.1f},{temperature:.1f},{pressure:.2f},{altitude:.1f},{ppm:.1f},{gx:.3f},{gy:.3f},{gz:.3f},{ax:.3f},{ay:.3f},{az:.3f}"
-        else:
-            packet = None
+    def collect_data(self):
+        """Collect data from all sensors."""
+        humidity = self.dht11.read_humidity()
+        temperature, pressure, altitude = self.bmp280.read_data()
+        ppm = self.mq135.read_ppm()
 
-        # Send data packet via radio
+        gx, gy, gz = self.bmi160.read_gyro()
+        ax, ay, az = self.bmi160.read_acceleration()
+
+        if gx == 0.0 and gy == 0.0 and gz == 0.0:  # Reinitialize BMI160 if necessary
+            i2c = busio.I2C(scl=board.GP15, sda=board.GP14)
+            self.bmi160 = BMI160Sensor(i2c)
+
+        return humidity, temperature, pressure, altitude, ppm, gx, gy, gz, ax, ay, az
+
+    def format_packet(self, data):
+        """Format sensor data into a packet for transmission."""
+        elapsed_time = time.monotonic() - self.start_time
+
+        # Ensure critical data is valid before sending packet
+        packet = f"{elapsed_time:.2f},{data[0]:.1f},{data[1]:.1f},{data[2]:.2f},{data[3]:.1f},{data[4]:.1f},{data[5]:.3f},{data[6]:.3f},{data[7]:.3f},{data[8]:.3f},{data[9]:.3f},{data[10]:.3f}"
+        return packet
+
+    def send_packet(self, packet):
+        """Send data packet via radio."""
         if packet is not None:
             radio.send(packet)
-            # Increment packet counter
-            packet_count += 1
-        # Wait for 1 seconds before next reading
-        time.sleep(0.5)
+            self.packet_count += 1
 
-    except KeyboardInterrupt:
-        break
+
+# Main loop using the SensorSystem class
+def main():
+    system = SensorSystem()
+
+    while True:
+        try:
+            # Collect data from sensors
+            data = system.collect_data()
+
+            # Format data into a packet for transmission
+            packet = system.format_packet(data)
+
+            # Send the packet via radio module (if valid)
+            system.send_packet(packet)
+
+            # Check for incoming radio messages (optional)
+            received_data = radio.try_read()
+            if received_data:
+                data = received_data.decode('utf-8')
+                print(data)
+
+        except KeyboardInterrupt:
+            print("Exiting program...")
+            break
+
+main()

@@ -11,7 +11,7 @@ class Communication:
 
     def __init__(self):
         self.baudrate = 115200
-        self.portName = 'COM5'
+        self.portName = '/dev/cu.usbmodem14101'
         print("the available ports are (if none appear, press any letter): ")
         for port in sorted(self.ports):
             # getting com list: https://stackoverflow.com/a/52809180

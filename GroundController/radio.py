@@ -22,7 +22,6 @@ def try_read():
     data = rfm9x.receive(timeout=1.0)
     return data# Timeout after 1 second
 
-
-def rssi(rmf9x):
+def rssi():
     # Get RSSI
     return rfm9x.rssi
