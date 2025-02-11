@@ -1,7 +1,7 @@
 import sys
 from pyqtgraph.Qt import QtGui, QtCore, QtWidgets
 import pyqtgraph as pg
-from PyQt5.QtWidgets import QPushButton, QSlider, QLabel, QVBoxLayout, QHBoxLayout, QWidget
+from PyQt5.QtWidgets import QPushButton, QSlider, QLabel, QHBoxLayout, QWidget
 from PyQt5.QtCore import QThread, pyqtSignal
 from collections import deque
 from graphs.graph_acceleration import graph_acceleration
@@ -14,7 +14,6 @@ from graphs.graph_ppm import graph_ppm
 from graphs.graph_humidity import graph_humidity
 from dataBase import data_base
 from communication import Communication
-import ctypes
 
 class FlightMonitoringGUI:
     def __init__(self):
@@ -32,7 +31,7 @@ class FlightMonitoringGUI:
         self.view.setCentralItem(self.Layout)
         self.view.show()
         if sys.platform.startswith('win'):
-            self.view.setWindowIcon(QtGui.QIcon('icon.ico'))
+            self.view.setWindowIcon(QtGui.QIcon('icon.png'))
         self.view.setWindowTitle('Flight Monitoring with Servo Control')
         self.view.resize(1200, 700)
 
@@ -232,6 +231,7 @@ class ServoControl(QWidget):
                 height: 10px;
                 width: 10px;
                 margin: -10px 0;
+                border-radius: 0px;
                 padding: -10px 0px;
             }
             QSlider::handle:horizontal:hover {
