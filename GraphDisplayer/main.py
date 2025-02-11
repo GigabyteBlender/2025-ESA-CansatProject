@@ -17,10 +17,11 @@ from communication import Communication
 
 class FlightMonitoringGUI:
     def __init__(self):
+        # Set the background and foreground colors for the graphs
         pg.setConfigOption('background', (33, 33, 33))
         pg.setConfigOption('foreground', (197, 198, 199))
 
-        # Create application and main window
+        # Create the application and main window
         self.app = QtWidgets.QApplication(sys.argv + ['-platform', 'windows:darkmode=1'])
         self.view = pg.GraphicsView()
         self.Layout = pg.GraphicsLayout()
@@ -30,18 +31,18 @@ class FlightMonitoringGUI:
         self.view.setWindowTitle('Flight Monitoring with Servo Control')
         self.view.resize(1200, 700)
 
-        # Declare objects for serial communication and database storage
+        # Initialize serial communication and database storage objects
         self.ser = Communication()
         self.data_base = data_base()
 
-        # Fonts for text items
+        # Set font for text items
         self.font = QtGui.QFont()
         self.font.setPixelSize(90)
 
-        # Buttons style
+        # Define button style
         self.style = "background-color:rgb(29, 185, 84);color:rgb(0,0,0);font-size:14px;"
 
-        # Declare graphs
+        # Initialize graph objects
         self.time = graph_time(font=self.font)
         self.altitude = graph_altitude()
         self.acceleration = graph_acceleration()
@@ -51,19 +52,21 @@ class FlightMonitoringGUI:
         self.ppm = graph_ppm()
         self.humidity = graph_humidity()
 
-        # Create Servo Control Thread and Connect Signals
+        # Create and start the servo control thread
         self.servo_thread = ServoControlThread()
         self.servo_thread.servo_signal.connect(send_to_pico)
         self.servo_thread.start()
 
+        # Initialize data storage for altitude and time
         self.altitude_data = deque(maxlen=100)
         self.time_data = deque(maxlen=100)
 
+        # Initialize the user interface
         self.init_ui()
         self.start_data_acquisition()
 
     def init_ui(self):
-        # Title at top
+        # Add title at the top
         self.Layout.addLabel("ITS NOT ROCKET SCIENCE", col=1, colspan=11)
         self.Layout.nextRow()
 
@@ -87,8 +90,8 @@ class FlightMonitoringGUI:
 
         self.Layout.nextRow()
 
-        # Graph layouts
-        l1 = self.Layout.addLayout(colspan=20, rowspan=4)  # Increased rowspan to 3 for all graphs
+        # Create layout for graphs
+        l1 = self.Layout.addLayout(colspan=20, rowspan=4)
 
         # Row 1: Altitude, Time
         l11 = l1.addLayout(rowspan=1, border=(83, 83, 83))
@@ -113,7 +116,7 @@ class FlightMonitoringGUI:
 
         self.Layout.nextRow()
 
-        # Create ServoControl widget with reference to the thread and add it to layout
+        # Create ServoControl widget and add it to layout
         self.servo_control_widget = ServoControl(self.servo_thread)
         proxy3 = QtWidgets.QGraphicsProxyWidget()
         proxy3.setWidget(self.servo_control_widget)
@@ -130,6 +133,7 @@ class FlightMonitoringGUI:
 
     def update(self):
         try:
+            # Get data from the serial communication
             str_value_chain = self.ser.getData()
             value_chain = [float(item) if item else 0.0 for item in str_value_chain]
 
@@ -161,8 +165,8 @@ class FlightMonitoringGUI:
             self.cleanup()
 
     def cleanup(self):
-        self.servo_thread.stop()  # Stop the servo control thread
-
+        # Stop the servo control thread
+        self.servo_thread.stop()
 
 # Servo Control Thread for Independent Execution
 class ServoControlThread(QThread):
@@ -187,7 +191,6 @@ class ServoControlThread(QThread):
     def stop(self):
         """Stop the thread."""
         self.running = False
-
 
 # Servo Control Widget for User Interaction with Sliders
 class ServoControl(QWidget):
@@ -276,7 +279,6 @@ def send_to_pico(servo_id, angle):
         print(f"Sent to Pico: {message.strip()}")
     except Exception as e:
         print(f"Failed to send data to Pico: {e}")
-
 
 if __name__ == '__main__':
     gui = FlightMonitoringGUI()
