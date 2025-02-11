@@ -32,7 +32,7 @@ class FlightMonitoringGUI:
         self.view.setCentralItem(self.Layout)
         self.view.show()
         if sys.platform.startswith('win'):
-            self.view.setWindowIcon(QtGui.QIcon('icon.png'))
+            self.view.setWindowIcon(QtGui.QIcon('icon.ico'))
         self.view.setWindowTitle('Flight Monitoring with Servo Control')
         self.view.resize(1200, 700)
 
