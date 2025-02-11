@@ -1,4 +1,5 @@
 import sys
+import os
 from pyqtgraph.Qt import QtGui, QtCore, QtWidgets
 import pyqtgraph as pg
 from PyQt5.QtWidgets import QPushButton, QSlider, QLabel, QHBoxLayout, QWidget
@@ -31,7 +32,9 @@ class FlightMonitoringGUI:
         self.view.setCentralItem(self.Layout)
         self.view.show()
         if sys.platform.startswith('win'):
-            self.view.setWindowIcon(QtGui.QIcon('icon.png'))
+            directory = os.path.dirname(os.path.abspath(__file__))
+            icon_path = os.path.join(directory, "icon.ico")
+            self.view.setWindowIcon(QtGui.QIcon(icon_path))
         self.view.setWindowTitle('Flight Monitoring with Servo Control')
         self.view.resize(1200, 700)
 
@@ -220,6 +223,11 @@ class ServoControl(QWidget):
         self.setStyleSheet("""
             QWidget {
                 background-color: rgb(33, 33, 33);
+            }
+            QLabel { 
+                background-color: rgb(33, 33, 33); 
+                color: rgb(197, 198, 199); 
+                font-size: 14px; 
             }
             QSlider::groove:horizontal {
                 height: 3px;
