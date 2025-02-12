@@ -14,6 +14,7 @@ from graphs.graph_time import graph_time
 from graphs.graph_ppm import graph_ppm
 from graphs.graph_humidity import graph_humidity
 from dataBase import data_base
+import serial
 from communication import Communication
 
 class FlightMonitoringGUI:
@@ -61,7 +62,6 @@ class FlightMonitoringGUI:
 
         # Create and start the servo control thread
         self.servo_thread = ServoControlThread()
-        self.servo_thread.servo_signal.connect(send_to_pico)
         self.servo_thread.start()
 
         # Initialize data storage for altitude and time
@@ -287,22 +287,25 @@ class ServoControl(QWidget):
     def send_servo1_command(self):
         """Send the current servo 1 value to the thread if it has changed."""
         if self.servo1_value != self.last_servo1_value:
-            self.servo_thread.add_command(servo_id=1, angle=self.servo1_value)
+            self.PicoSend()
             self.last_servo1_value = self.servo1_value
 
     def send_servo2_command(self):
         """Send the current servo 2 value to the thread if it has changed."""
         if self.servo2_value != self.last_servo2_value:
-            self.servo_thread.add_command(servo_id=2, angle=self.servo2_value)
+            self.PicoSend()
             self.last_servo2_value = self.servo2_value
 
-def send_to_pico(servo_id, angle):
-    """Send servo control commands to the microcontroller."""
-    try:
-        message = f"{servo_id},{angle}\n"
-        print(f"Sent to Pico: {message.strip()}")
-    except Exception as e:
-        print(f"Failed to send data to Pico: {e}")
+    def PicoSend(self):
+        try:
+        # Open the serial connection
+            with serial.Serial('/dev/cu.usbmodem14201', 9600, timeout=1) as ser:
+                message = f"{str(self.servo1_value)},{str(self.servo2_value)}"  # Create the message
+                print(message)
+                ser.write(message.encode('utf-8'))  # Send the message
+
+        except Exception as e:
+            print(f"Error: {e}")
 
 if __name__ == '__main__':
     gui = FlightMonitoringGUI()
