@@ -205,10 +205,10 @@ class ServoControl(QWidget):
         super().__init__()
         self.servo_thread = servo_thread  # Reference to the servo control thread
         self.initUI()
-        self.servo1_value = 90
-        self.servo2_value = 90
-        self.last_servo1_value = 90
-        self.last_servo2_value = 90
+        self.servo1_value = 0
+        self.servo2_value = 0
+        self.last_servo1_value = 0
+        self.last_servo2_value = 0
         self.servo1_timer = QtCore.QTimer()
         self.servo2_timer = QtCore.QTimer()
         self.servo1_timer.setSingleShot(True)
@@ -287,21 +287,20 @@ class ServoControl(QWidget):
     def send_servo1_command(self):
         """Send the current servo 1 value to the thread if it has changed."""
         if self.servo1_value != self.last_servo1_value:
-            self.PicoSend()
+            self.PicoSend() #Sending over to pico
             self.last_servo1_value = self.servo1_value
 
     def send_servo2_command(self):
         """Send the current servo 2 value to the thread if it has changed."""
         if self.servo2_value != self.last_servo2_value:
-            self.PicoSend()
+            self.PicoSend() #Sending over to pico
             self.last_servo2_value = self.servo2_value
 
     def PicoSend(self):
         try:
         # Open the serial connection
-            with serial.Serial('/dev/cu.usbmodem14201', 9600, timeout=1) as ser:
-                message = f"{str(self.servo1_value)},{str(self.servo2_value)}"  # Create the message
-                print(message)
+            with serial.Serial('/dev/cu.usbmodem14203', 9600, timeout=1) as ser:
+                message = f"{self.servo1_value},{self.servo2_value}"  # Create the message
                 ser.write(message.encode('utf-8'))  # Send the message
 
         except Exception as e:
