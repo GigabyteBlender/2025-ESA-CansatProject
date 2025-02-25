@@ -1,39 +1,26 @@
 import sys  # Imports the sys module for system-specific parameters and functions
-
 import logging  # Imports the logging module for logging messages
 
 import pyqtgraph as pg  # Imports the pyqtgraph module for data visualization
-
 from pyqtgraph.Qt import QtGui, QtCore, QtWidgets  # Imports necessary modules from pyqtgraph for GUI elements
-
 from PyQt5.QtWidgets import QPushButton, QSlider, QLabel, QHBoxLayout, QWidget, QVBoxLayout, QDialog  # Imports specific widgets from PyQt5
-
 from PyQt5.QtCore import QThread, pyqtSignal, QObject  # Imports QThread, pyqtSignal, and QObject from PyQt5 for threading
 
 from collections import deque  # Imports deque from collections for efficient appending and popping from both ends
 
 from graphs.graph_acceleration import graph_acceleration  # Imports the graph_acceleration class from the graphs package
-
 from graphs.graph_altitude import graph_altitude  # Imports the graph_altitude class from the graphs package
-
 from graphs.graph_gyro import graph_gyro  # Imports the graph_gyro class from the graphs package
-
 from graphs.graph_pressure import graph_pressure  # Imports the graph_pressure class from the graphs package
-
 from graphs.graph_temperature import graph_temperature  # Imports the graph_temperature class from the graphs package
-
 from graphs.graph_time import graph_time  # Imports the graph_time class from the graphs package
-
 from graphs.graph_ppm import graph_ppm  # Imports the graph_ppm class from the graphs package
-
 from graphs.graph_humidity import graph_humidity  # Imports the graph_humidity class from the graphs package
 
 from dataBase import DataBase  # Imports the DataBase class from the dataBase module
-
 from communication import Communication  # Imports the Communication class from the communication module
 
 import serial  # Imports the serial module for serial communication
-
 import serial.tools.list_ports  # Imports the serial.tools.list_ports module for listing serial ports
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')  # Configures logging
@@ -352,35 +339,35 @@ class ServoControl(QWidget):
 
         # Set background color and styling for the widget and labels
         self.setStyleSheet("""
-QWidget {
-background-color: rgb(33, 33, 33);
-}
+            QWidget {
+            background-color: rgb(33, 33, 33);
+            }
 
-QLabel {
-background-color: rgb(33, 33, 33);
-color: rgb(197, 198, 199);
-font-size: 14px;
-}
+            QLabel {
+            background-color: rgb(33, 33, 33);
+            color: rgb(197, 198, 199);
+            font-size: 14px;
+            }
 
-QSlider::groove:horizontal {
-height: 3px;
-margin: 0px;
-background-color: rgb(52, 59, 72);
-}
+            QSlider::groove:horizontal {
+            height: 3px;
+            margin: 0px;
+            background-color: rgb(52, 59, 72);
+            }
 
-QSlider::handle:horizontal {
-background-color: rgb(29, 185, 84);
-height: 10px;
-width: 10px;
-margin: -10px 0;
-border-radius: 0px;
-padding: -10px 0px;
-}
+            QSlider::handle:horizontal {
+            background-color: rgb(29, 185, 84);
+            height: 10px;
+            width: 10px;
+            margin: -10px 0;
+            border-radius: 0px;
+            padding: -10px 0px;
+            }
 
-QSlider::handle:horizontal:hover {
-background-color: rgb(29, 130, 84);
-}
-""")
+            QSlider::handle:horizontal:hover {
+            background-color: rgb(29, 130, 84);
+            }
+            """)
 
         # Slider for Servo 1
         self.label_servo1 = QLabel("Servo 1 Angle: 0°")  # Creates a label for Servo 1
