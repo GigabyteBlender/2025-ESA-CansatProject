@@ -83,13 +83,13 @@ class DataAcquisitionThread(QThread):
                 str_value_chain = self.communication.getData()
                 # Use numpy for faster conversion
                 try:
-                    value_chain = [float(item) if item else 0.0 for item in str_value_chain]
+                    value_chain = np.array(str_value_chain, dtype=float)
                 except ValueError as e:
                     print(f"ValueError during conversion: {e}, Data: {str_value_chain}")
                     continue  # Skip this iteration if conversion fails
 
-                if len(value_chain) >= 12:
-                    self.data_worker.data_received.emit(value_chain)
+                if value_chain.size >= 12:
+                    self.data_worker.data_received.emit(value_chain.tolist())
             except Exception as e:
                 print(f"Error in DataAcquisitionThread: {e}")
 
