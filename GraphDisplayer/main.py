@@ -5,7 +5,6 @@ from pyqtgraph.Qt import QtGui, QtCore, QtWidgets
 from PyQt5.QtWidgets import QPushButton, QSlider, QLabel, QHBoxLayout, QWidget, QVBoxLayout, QDialog
 from PyQt5.QtCore import QThread, pyqtSignal
 from collections import deque
-
 from graphs.graph_acceleration import graph_acceleration
 from graphs.graph_altitude import graph_altitude
 from graphs.graph_gyro import graph_gyro
@@ -14,7 +13,6 @@ from graphs.graph_temperature import graph_temperature
 from graphs.graph_time import graph_time
 from graphs.graph_ppm import graph_ppm
 from graphs.graph_humidity import graph_humidity
-
 from dataBase import DataBase
 from communication import Communication
 import serial
@@ -23,15 +21,12 @@ import serial.tools.list_ports
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 class PortSelectionDialog(QDialog):
-
     """A dialog for selecting a serial port, styled to match the main GUI."""
-
     def __init__(self):
         """Initializes the port selection dialog."""
         super().__init__()
-
         self.setWindowTitle("Select Serial Port")
-        self.setFixedSize(600, 400)  # Adjusted size, can be tweaked
+        self.setFixedSize(600, 400) # Adjusted size, can be tweaked
         self.selected_port = None
 
         # Main layout
@@ -53,14 +48,13 @@ class PortSelectionDialog(QDialog):
         # Available ports layout
         ports_layout = QVBoxLayout()
         main_layout.addLayout(ports_layout)
-        main_layout.addStretch(1)  # Add some space at the bottom
+        main_layout.addStretch(1) # Add some space at the bottom
 
         # List available serial ports
         available_ports = [port.device for port in serial.tools.list_ports.comports()]
-
         if not available_ports:
             label = QLabel("No serial ports found.")
-            label.setAlignment(QtCore.Qt.AlignTop)  # Center the label
+            label.setAlignment(QtCore.Qt.AlignTop) # Center the label
             label.setStyleSheet("""
                 QLabel {
                     color: rgb(197, 198, 199);
@@ -97,26 +91,20 @@ class PortSelectionDialog(QDialog):
             }
         """)
 
-
     def select_port(self, port):
         """Selects a serial port and closes the dialog."""
         self.selected_port = port
-        self.accept()  # Close the dialog with acceptance status
+        self.accept() # Close the dialog with acceptance status
 
 class FlightMonitoringGUI:
     """Main class for the flight monitoring GUI."""
-
     def __init__(self, selected_port=None):
         """Initializes the GUI, serial communication, and database."""
         # Graph settings
         pg.setConfigOption('background', (33, 33, 33))
         pg.setConfigOption('foreground', (197, 198, 199))
 
-        # Create application and main window
-        if sys.platform.startswith('win'):
-            self.app = QtWidgets.QApplication(sys.argv + ['-platform', 'windows:darkmode=1'])
-        else:
-            self.app = QtWidgets.QApplication(sys.argv)
+        # DO NOT CREATE QApplication here.  It's created in main()
 
         self.view = pg.GraphicsView()
         self.Layout = pg.GraphicsLayout()
@@ -124,13 +112,12 @@ class FlightMonitoringGUI:
         self.view.show()
 
         if sys.platform.startswith('win'):
-            import os  # Import os here
+            import os # Import os here
             directory = os.path.dirname(os.path.abspath(__file__))
             icon_path = os.path.join(directory, "icon.ico")
             self.view.setWindowIcon(QtGui.QIcon(icon_path))
-
-        self.view.setWindowTitle('Flight Monitoring with Servo Control')
-        self.view.resize(1200, 700)
+            self.view.setWindowTitle('Flight Monitoring with Servo Control')
+            self.view.resize(1200, 700)
 
         # Initialize serial communication and database
         self.ser = Communication(port_name=selected_port)
@@ -226,7 +213,7 @@ class FlightMonitoringGUI:
         if self.ser.isOpen() or self.ser.dummyMode():
             self.timer = QtCore.QTimer()
             self.timer.timeout.connect(self.update)
-            self.timer.start(500)  # Update every 500ms
+            self.timer.start(500) # Update every 500ms
 
     def update(self):
         try:
@@ -246,7 +233,6 @@ class FlightMonitoringGUI:
 
                 # Save data to the database
                 self.data_base.store_data(value_chain)
-
         except IndexError as e:
             print(f"Starting, please wait a moment: {e}")
         except ValueError as e:
@@ -255,9 +241,11 @@ class FlightMonitoringGUI:
             print(f"Unexpected error: {e}")
 
     def run(self):
+        """Runs the application event loop.""" # Changed to just run the loop
         try:
             if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
-                sys.exit(self.app.exec_())
+                sys.exit(self.app.exec_()) # Use the existing app instance
+
         finally:
             self.cleanup()
 
@@ -268,7 +256,6 @@ class FlightMonitoringGUI:
 # Servo Control Thread for Independent Execution
 class ServoControlThread(QThread):
     servo_signal = pyqtSignal(int, int) # Signal to send servo data (servo ID and angle)
-
     def __init__(self):
         super().__init__()
         self.running = True
@@ -345,6 +332,7 @@ class ServoControl(QWidget):
         self.slider_servo1.setMaximum(90)
         self.slider_servo1.setValue(0)
         self.slider_servo1.valueChanged.connect(self.update_servo1)
+
         # Slider for Servo 2
         self.label_servo2 = QLabel("Servo 2 Angle: 0°")
         self.slider_servo2 = QSlider(QtCore.Qt.Horizontal)
@@ -352,6 +340,7 @@ class ServoControl(QWidget):
         self.slider_servo2.setMaximum(90)
         self.slider_servo2.setValue(0)
         self.slider_servo2.valueChanged.connect(self.update_servo2)
+
         # Add widgets to layout with spacing between sliders
         layout.addWidget(self.label_servo1)
         layout.addWidget(self.slider_servo1)
@@ -392,15 +381,20 @@ class ServoControl(QWidget):
             print(f"Error: {e}")
 
 if __name__ == '__main__':
-    # Before starting the main application, show the port selection dialog
+    # Create the QApplication instance *once* at the beginning.
     app = QtWidgets.QApplication(sys.argv)
+
+    # Show the port selection dialog
     port_dialog = PortSelectionDialog()
-    result = port_dialog.exec_()  # Execute the dialog and get the result
+    result = port_dialog.exec_() # Execute the dialog and get the result
 
     if result == QDialog.Accepted:
         selected_port = port_dialog.selected_port
-        gui = FlightMonitoringGUI(selected_port)  # Pass the selected port
-        gui.run()
+        # Initialize and run the main GUI *only* if a port was selected.
+        gui = FlightMonitoringGUI(selected_port) # Pass the selected port
+        gui.app = app #VERY IMPORTANT
+        gui.run()  # Run the GUI
     else:
         print("No serial port selected. Exiting.")
-        sys.exit()
+
+    sys.exit(app.exec_()) # Ensure the application exits cleanly
