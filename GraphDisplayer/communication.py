@@ -43,7 +43,7 @@ class Communication:
         else:
             logging.info(f"Port {self.portName} is already closed or was never opened.")
 
-    def serial_send(self, data):
+    def serial_send(self, data: str):
         """
         Sends data to the serial port.
 
@@ -55,7 +55,7 @@ class Communication:
             return
 
         try:
-            message = str(data) # Create the message
+            message = data # Create the message
             logging.info(message)
             self.ser.write(message.encode('utf-8')) # Send the message
         except serial.SerialException as e:
