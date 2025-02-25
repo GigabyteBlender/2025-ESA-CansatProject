@@ -3,7 +3,7 @@ import logging
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtGui, QtCore, QtWidgets
 from PyQt5.QtWidgets import QPushButton, QSlider, QLabel, QHBoxLayout, QWidget, QVBoxLayout, QDialog
-from PyQt5.QtCore import QThread, pyqtSignal
+from PyQt5.QtCore import QThread, pyqtSignal, QObject
 from collections import deque
 from graphs.graph_acceleration import graph_acceleration
 from graphs.graph_altitude import graph_altitude
@@ -21,80 +21,100 @@ import serial.tools.list_ports
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 class PortSelectionDialog(QDialog):
-    """A dialog for selecting a serial port, styled to match the main GUI."""
+    """A dialog for selecting a serial port."""
     def __init__(self):
-        """Initializes the port selection dialog."""
         super().__init__()
         self.setWindowTitle("Select Serial Port")
-        self.setFixedSize(600, 400) # Adjusted size, can be tweaked
+        self.setFixedSize(600, 400)
         self.selected_port = None
 
-        # Main layout
         main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(20, 20, 20, 20) # Add some padding
+        main_layout.setContentsMargins(20, 20, 20, 20)
 
-        # Title Label
         title_label = QLabel("Available Serial Ports:")
         title_label.setAlignment(QtCore.Qt.AlignTop)
-        title_label.setStyleSheet("""
-            QLabel {
-                color: rgb(197, 198, 199);
-                font-size: 20px;
-                margin-bottom: 20px;
-            }
-        """)
+        title_label.setStyleSheet("""QLabel { color: rgb(197, 198, 199); font-size: 20px; margin-bottom: 20px; }""")
         main_layout.addWidget(title_label)
 
-        # Available ports layout
         ports_layout = QVBoxLayout()
         main_layout.addLayout(ports_layout)
-        main_layout.addStretch(1) # Add some space at the bottom
+        main_layout.addStretch(1)
 
-        # List available serial ports
         available_ports = [port.device for port in serial.tools.list_ports.comports()]
         if not available_ports:
             label = QLabel("No serial ports found.")
-            label.setAlignment(QtCore.Qt.AlignTop) # Center the label
-            label.setStyleSheet("""
-                QLabel {
-                    color: rgb(197, 198, 199);
-                    font-size: 16px;
-                    margin-bottom: 10px;
-                }
-            """)
+            label.setAlignment(QtCore.Qt.AlignTop)
+            label.setStyleSheet("""QLabel { color: rgb(197, 198, 199); font-size: 16px; margin-bottom: 10px; }""")
             ports_layout.addWidget(label)
         else:
-            self.port_buttons = []
             for port in available_ports:
                 button = QPushButton(port)
-                button.setStyleSheet("""
-                    QPushButton {
-                        background-color:rgb(29, 185, 84);
-                        color:rgb(0,0,0);
-                        font-size:16px;
-                        padding: 12px;
-                        border-radius: 5px;
-                        margin-bottom: 10px;
-                    }
-                    QPushButton:hover {
-                        background-color: rgb(29, 130, 84);
-                    }
-                """)
+                button.setStyleSheet("""QPushButton { background-color:rgb(29, 185, 84); color:rgb(0,0,0); font-size:16px; padding: 12px; border-radius: 5px; margin-bottom: 10px; } QPushButton:hover { background-color: rgb(29, 130, 84); }""")
                 button.clicked.connect(lambda checked, p=port: self.select_port(p))
                 ports_layout.addWidget(button)
-                self.port_buttons.append(button)
 
-        # Apply dark theme styling to the dialog
-        self.setStyleSheet("""
-            QDialog {
-                background-color: rgb(33, 33, 33);
-            }
-        """)
+        self.setStyleSheet("""QDialog { background-color: rgb(33, 33, 33); }""")
 
     def select_port(self, port):
-        """Selects a serial port and closes the dialog."""
+        """Selects a serial port."""
         self.selected_port = port
-        self.accept() # Close the dialog with acceptance status
+        self.accept()
+
+class DataWorker(QObject):
+    """Worker class for emitting signals from the data acquisition thread."""
+    data_received = pyqtSignal(list)
+
+class DataAcquisitionThread(QThread):
+    """Thread to handle data acquisition from the serial port."""
+    def __init__(self, communication, data_worker):
+        super().__init__()
+        self.communication = communication
+        self.running = True
+        self.data_worker = data_worker
+
+    def run(self):
+        while self.running:
+            try:
+                str_value_chain = self.communication.getData()
+                value_chain = [float(item) if item else 0.0 for item in str_value_chain]
+                if len(value_chain) >= 12:
+                    self.data_worker.data_received.emit(value_chain)
+            except Exception as e:
+                print(f"Error in DataAcquisitionThread: {e}")
+            self.msleep(50)
+
+    def stop(self):
+        self.running = False
+
+class PlottingThread(QThread):
+    """Thread to handle graph updates."""
+    def __init__(self, gui, data_base):
+        super().__init__()
+        self.gui = gui
+        self.data_base = data_base
+        self.running = True
+
+    def run(self):
+        """Initializes the GUI, serial communication, and database."""
+        # DO NOT CREATE QApplication here.  It's created in main()
+        # Initialize graph objects
+        self.time = graph_time(font=self.gui.font)
+        self.altitude = graph_altitude()
+        self.acceleration = graph_acceleration()
+        self.gyro = graph_gyro()
+        self.pressure = graph_pressure()
+        self.temperature = graph_temperature()
+        self.ppm = graph_ppm()
+        self.humidity = graph_humidity()
+
+        # Initialize data storage for altitude and time
+        self.altitude_data = deque(maxlen=100)
+        self.time_data = deque(maxlen=100)
+        while self.running:
+            self.msleep(50)
+
+    def stop(self):
+        self.running = False
 
 class FlightMonitoringGUI:
     """Main class for the flight monitoring GUI."""
@@ -150,7 +170,8 @@ class FlightMonitoringGUI:
 
         # Initialize the user interface
         self.init_ui()
-        self.start_data_acquisition()
+        # Set up threads and start data acquisition
+        self.init_threads()
 
     def init_ui(self):
         """Initializes the user interface."""
@@ -208,50 +229,62 @@ class FlightMonitoringGUI:
         l14 = l1.addLayout(rowspan=1, colspan=20, border=(83, 83, 83))
         l14.addItem(proxy3)
 
-    def start_data_acquisition(self):
-        """Set up a QTimer for periodic updates."""
-        if self.ser.isOpen() or self.ser.dummyMode():
-            self.timer = QtCore.QTimer()
-            self.timer.timeout.connect(self.update)
-            self.timer.start(500) # Update every 500ms
+    def init_threads(self):
+        """Initialize and start the data acquisition and plotting threads."""
+        self.data_worker = DataWorker()
+        self.data_acquisition_thread = DataAcquisitionThread(self.ser, self.data_worker)
 
-    def update(self):
+        self.data_worker.data_received.connect(self.update_graphs)
+
+        self.data_acquisition_thread.start()
+
+    def update_graphs(self, value_chain):
+        """Update the graphs with new data.  This runs in the *main* thread."""
+        if len(value_chain) < 12:
+            print("Incomplete data received.")  # Handle incomplete data
+            return
+
         try:
-            # Get data from the serial communication
-            str_value_chain = self.ser.getData()
-            value_chain = [float(item) if item else 0.0 for item in str_value_chain]
-            if len(value_chain) >= 12:
-                # Update graphs with the latest data
-                self.altitude.update(value_chain[4])
-                self.time.update(value_chain[0])
-                self.acceleration.update(value_chain[9], value_chain[10], value_chain[11])
-                self.gyro.update(value_chain[6], value_chain[7], value_chain[8])
-                self.pressure.update(value_chain[3])
-                self.temperature.update(value_chain[2])
-                self.ppm.update(value_chain[5])
-                self.humidity.update(value_chain[1])
+            # Extract data
+            altitude = value_chain[4]
+            time = value_chain[0]
+            acceleration = value_chain[9:12]  # Slice for acceleration values
+            gyro = value_chain[6:9]  # Slice for gyro values
+            pressure = value_chain[3]
+            temperature = value_chain[2]
+            ppm = value_chain[5]
+            humidity = value_chain[1]
 
-                # Save data to the database
-                self.data_base.store_data(value_chain)
-        except IndexError as e:
-            print(f"Starting, please wait a moment: {e}")
-        except ValueError as e:
-            print(f"Invalid data received: {e}")
-        except Exception as e:
-            print(f"Unexpected error: {e}")
+            # Update graphs
+            self.altitude.update(altitude)
+            self.time.update(time)
+            self.acceleration.update(*acceleration)  # Unpack the slice
+            self.gyro.update(*gyro)  # Unpack the slice
+            self.pressure.update(pressure)
+            self.temperature.update(temperature)
+            self.ppm.update(ppm)
+            self.humidity.update(humidity)
+
+            # Save data to the database
+            self.data_base.store_data(value_chain)
+
+        except (IndexError, ValueError) as e:  # Catch specific exceptions
+            print(f"Error updating graphs: {e}")
 
     def run(self):
-        """Runs the application event loop.""" # Changed to just run the loop
+        """Runs the application event loop."""
         try:
             if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
-                sys.exit(self.app.exec_()) # Use the existing app instance
-
+                sys.exit(self.app.exec_())
         finally:
             self.cleanup()
 
     def cleanup(self):
-        # Stop the servo control thread
-        self.servo_thread.stop()
+        """Stop the threads when the GUI is closed."""
+        self.data_acquisition_thread.stop()
+        self.servo_thread.stop() #Stop Servo Thread as well
+        self.data_acquisition_thread.wait()
+        self.servo_thread.wait()
 
 # Servo Control Thread for Independent Execution
 class ServoControlThread(QThread):
