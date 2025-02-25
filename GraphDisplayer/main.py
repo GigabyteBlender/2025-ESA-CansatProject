@@ -17,7 +17,7 @@ from graphs.graph_humidity import graph_humidity
 from dataBase import DataBase
 from communication import Communication
 import serial
-import serial.tools.list_ports
+import serial.tools.list_ports 
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -204,11 +204,19 @@ class FlightMonitoringGUI:
         self.end_save_button.setStyleSheet(self.style)
         self.end_save_button.clicked.connect(self.data_base.stop_storage)
         proxy2.setWidget(self.end_save_button)
+        
+        proxy3 = QtWidgets.QGraphicsProxyWidget()
+        self.start_stop_button = QPushButton('Start/Stop Cansat')
+        self.start_stop_button.setStyleSheet(self.style)
+        self.start_stop_button.clicked.connect(lambda: self.ser.serial_send("start_stop"))
+        proxy3.setWidget(self.start_stop_button)
 
         lb = self.Layout.addLayout(colspan=21)
         lb.addItem(proxy1)
         lb.nextCol()
         lb.addItem(proxy2)
+        lb.nextCol()
+        lb.addItem(proxy3)
         self.Layout.nextRow()
 
         # Create layout for graphs
@@ -217,14 +225,20 @@ class FlightMonitoringGUI:
         # Row 1: Altitude, Time
         l11 = l1.addLayout(rowspan=1, border=(83, 83, 83))
         l11.addItem(self.altitude)
+        l11.addItem(self.pressure)
         l11.addItem(self.time)
+        self.time.setFixedHeight(200)
+        self.time.setFixedWidth(300)
         l1.nextRow()
 
         # Row 2: Acceleration, Gyro, Pressure, Temperature
         l12 = l1.addLayout(rowspan=1, border=(83, 83, 83))
         l12.addItem(self.acceleration)
+        self.acceleration.setFixedHeight(170)
+        self.acceleration.setFixedWidth(400)
         l12.addItem(self.gyro)
-        l12.addItem(self.pressure)
+        self.gyro.setFixedHeight(170)
+        self.gyro.setFixedWidth(400)
         l12.addItem(self.temperature)
         l1.nextRow()
 
