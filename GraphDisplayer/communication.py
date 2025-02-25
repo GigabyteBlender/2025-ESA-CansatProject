@@ -28,8 +28,12 @@ class Communication:
         """Connects to the serial port."""
         try:
             self.ser = serial.Serial(self.portName, self.baudrate, timeout=1)
+            self.com_serial = serial.Serial("/dev/cu.usbmodem14203", self.baudrate, timeout=1)
+
             logging.info(f"Connected to {self.portName} at {self.baudrate} baud.")
             logging.info(self.ser)
+            logging.info(self.com_serial)
+            
         except serial.serialutil.SerialException as e:
             logging.error(f"Could not open port {self.portName}: {e}")
             self.dummyPlug = True
@@ -39,6 +43,7 @@ class Communication:
         """Closes the serial port if it's open."""
         if self.ser and self.ser.isOpen():
             self.ser.close()
+            self.com_serial.close()
             logging.info(f"Closed port {self.portName}")
         else:
             logging.info(f"Port {self.portName} is already closed or was never opened.")
@@ -53,11 +58,10 @@ class Communication:
         if self.dummyPlug:
             logging.warning("Dummy mode active. Data not sent.")
             return
-
         try:
             message = data # Create the message
             logging.info(message)
-            self.ser.write(message.encode('utf-8')) # Send the message
+            self.com_serial.write(message.encode('utf-8')) # Send the message
         except serial.SerialException as e:
             logging.error(f"Error sending data to serial port: {e}")
 

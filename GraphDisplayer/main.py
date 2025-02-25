@@ -1,41 +1,22 @@
 import sys  # Import the sys module for system-specific parameters and functions
-
 import logging  # Import the logging module for logging messages
-
 import pyqtgraph as pg  # Import the pyqtgraph library for plotting
-
 from pyqtgraph.Qt import QtGui, QtCore, QtWidgets  # Import QtGui, QtCore, and QtWidgets from pyqtgraph.Qt
-
 from PyQt5.QtWidgets import QPushButton, QSlider, QLabel, QHBoxLayout, QWidget, QVBoxLayout, QDialog  # Import necessary widgets from PyQt5
-
 from PyQt5.QtCore import QThread, pyqtSignal, QObject, QTimer  # Import necessary QtCore classes
-
 from collections import deque  # Import deque for efficient appending and popping from both ends of a list
-
 import numpy as np  # Import numpy for numerical operations
-
 from graphs.graph_acceleration import graph_acceleration  # Import the graph_acceleration class
-
 from graphs.graph_altitude import graph_altitude  # Import the graph_altitude class
-
 from graphs.graph_gyro import graph_gyro  # Import the graph_gyro class
-
 from graphs.graph_pressure import graph_pressure  # Import the graph_pressure class
-
 from graphs.graph_temperature import graph_temperature  # Import the graph_temperature class
-
 from graphs.graph_time import graph_time  # Import the graph_time class
-
 from graphs.graph_ppm import graph_ppm  # Import the graph_ppm class
-
 from graphs.graph_humidity import graph_humidity  # Import the graph_humidity class
-
 from dataBase import DataBase  # Import the DataBase class
-
 from communication import Communication  # Import the Communication class
-
 import serial  # Import the serial module for serial communication
-
 import serial.tools.list_ports  # Import the serial.tools.list_ports module
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')  # Configure logging
@@ -615,7 +596,7 @@ def main():
     else:
         print("No port selected. Exiting.")  # Print a message if no port was selected
         return  # Return from the function
-
+    
     gui = FlightMonitoringGUI(selected_port)  # Create a FlightMonitoringGUI object
     gui.app = app  # Set the app attribute of the GUI object
     gui.run()  # Run the GUI
