@@ -71,7 +71,7 @@ class DataWorker(QObject):
 class DataAcquisitionThread(QThread):
     """Thread to handle data acquisition from the serial port."""
 
-    def __init__(self, communication, data_worker):
+    def __init__(self, communication: Communication, data_worker: DataWorker):
         super().__init__()
         self.communication = communication
         self.running = True
