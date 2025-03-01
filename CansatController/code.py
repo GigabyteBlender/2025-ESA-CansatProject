@@ -128,15 +128,11 @@ class ServoControl:
             # Assuming data[0] and data[1] are servo angles
             servo1_angle = data[0]
             servo2_angle = data[1]
-
             # Move the servos to the specified angles
             self.servo1.angle = servo1_angle
             self.servo2.angle = servo2_angle
-
             # Update previous data
-            self.previous_data = data
-
-            #print(f"Servo 1 angle: {servo1_angle}, Servo 2 angle: {servo2_angle}")
+            self.previous_data = data=
 
         except ValueError:
             print("Invalid data values for servo control.")
@@ -170,6 +166,7 @@ class SensorSystem:
         humidity = self.dht11.read_humidity()
         temperature, pressure, altitude = self.bmp280.read_data()
         ppm = self.mq135.read_ppm()
+
         gx, gy, gz = self.bmi160.read_gyro()
         ax, ay, az = self.bmi160.read_acceleration()
 
@@ -192,22 +189,17 @@ class SensorSystem:
             radio.send(packet)
             self.packet_count += 1
 
-    def servoTest(self, data):
-        print(data)
-        self.servo_control.move_servos(data)
-
     def process_radio_data(self, received_data):
         """Process the data received from the radio and move the servos."""
         try:
             data_str = received_data.decode('utf-8')
             data_list = data_str.split(',')
-            # Check if the list has exactly two elements
-            if len(data_list) == 2:
-                # Convert the elements to numbers
-                servo_data = [int(data_list[0]), int(data_list[1])]
-                self.servo_control.move_servos(servo_data)
-            else:
-                print("Received radio data in unexpected format:", data_list)
+
+            # Convert the elements to numbers
+            servo_data = [int(data_list[0]), int(data_list[1])]
+
+            self.servo_control.move_servos(servo_data)
+
         except ValueError as e:
             print(f"Error converting radio data: {e}")
         except Exception as e:
@@ -217,10 +209,7 @@ class SensorSystem:
 # Main loop using the SensorSystem class
 def main():
     system = SensorSystem()
-
-    data = [10,20]
-    system.servoTest(data)
-
+    #infinit loop woaahhh
     while True:
         try:
             # Collect data from sensors
@@ -229,7 +218,6 @@ def main():
             packet = system.format_packet(data)
             # Send the packet via radio module (if valid)
             system.send_packet(packet)
-
             # Check for incoming radio messagesss
             received_data = radio.try_read()
 
