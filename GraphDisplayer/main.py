@@ -528,7 +528,7 @@ QSlider::handle:horizontal:hover {
         servo1_layout = QHBoxLayout()  # Create a horizontal layout for servo 1
         servo1_label = QLabel("Servo 1 Angle:")  # Create a label for servo 1
         self.servo1_slider = QSlider(QtCore.Qt.Horizontal)  # Create a slider for servo 1
-        self.servo1_slider.setRange(-90, 90)  # Set the range of the slider
+        self.servo1_slider.setRange(0, 180)  # Set the range of the slider
         self.servo1_slider.setValue(0)  # Default angle
         self.servo1_value_label = QLabel(str(self.servo1_slider.value()))  # Create a label to display the value of the slider
         self.servo1_slider.valueChanged.connect(lambda value: self.slider1_moved(value))  # Connect the slider's valueChanged signal to the slider1_moved method
@@ -542,7 +542,7 @@ QSlider::handle:horizontal:hover {
         servo2_layout = QHBoxLayout()  # Create a horizontal layout for servo 2
         servo2_label = QLabel("Servo 2 Angle:")  # Create a label for servo 2
         self.servo2_slider = QSlider(QtCore.Qt.Horizontal)  # Create a slider for servo 2
-        self.servo2_slider.setRange(-90, 90)  # Set the range of the slider
+        self.servo2_slider.setRange(0, 180)  # Set the range of the slider
         self.servo2_slider.setValue(0)  # Default angle
         self.servo2_value_label = QLabel(str(self.servo2_slider.value()))  # Create a label to display the value of the slider
         self.servo2_slider.valueChanged.connect(lambda value: self.slider2_moved(value))  # Connect the slider's valueChanged signal to the slider2_moved method
