@@ -12,7 +12,6 @@ from graphs.graph_gyro import graph_gyro  # Import the graph_gyro class
 from graphs.graph_pressure import graph_pressure  # Import the graph_pressure class
 from graphs.graph_temperature import graph_temperature  # Import the graph_temperature class
 from graphs.graph_time import graph_time  # Import the graph_time class
-from graphs.graph_ppm import graph_ppm  # Import the graph_ppm class
 from graphs.graph_humidity import graph_humidity  # Import the graph_humidity class
 from dataBase import DataBase  # Import the DataBase class
 from communication import Communication  # Import the Communication class
@@ -165,7 +164,6 @@ class PlottingThread(QThread):
         self.gyro = graph_gyro()  # Initialize the gyro graph
         self.pressure = graph_pressure()  # Initialize the pressure graph
         self.temperature = graph_temperature()  # Initialize the temperature graph
-        self.ppm = graph_ppm()  # Initialize the PPM graph
         self.humidity = graph_humidity()  # Initialize the humidity graph
 
         # Initialize data storage for altitude and time
@@ -252,7 +250,6 @@ class FlightMonitoringGUI:
         self.gyro = graph_gyro()  # Initialize the gyro graph
         self.pressure = graph_pressure()  # Initialize the pressure graph
         self.temperature = graph_temperature()  # Initialize the temperature graph
-        self.ppm = graph_ppm()  # Initialize the PPM graph
         self.humidity = graph_humidity()  # Initialize the humidity graph
 
         # Initialize data storage for altitude and time
@@ -335,8 +332,6 @@ class FlightMonitoringGUI:
         l13 = l1.addLayout(rowspan=1, border=(83, 83, 83))  # Create a layout for the third row
         l13.addItem(self.humidity)  # Add the humidity graph to the layout
         self.humidity.setFixedHeight(170)  # Set the fixed height of the acceleration graph
-        l13.addItem(self.ppm)  # Add the PPM graph to the layout
-        self.ppm.setFixedHeight(170)  # Set the fixed height of the acceleration graph
         self.Layout.nextRow()  # Create ServoControl widget and add it to layout
 
         self.servo_control_widget = ServoControl(self.servo_thread)  # Remove communication object
@@ -367,11 +362,10 @@ class FlightMonitoringGUI:
             # Extract data
             altitude = value_chain[4]  # Extract the altitude from the value chain
             time = value_chain[0]  # Extract the time from the value chain
-            acceleration = value_chain[9:12]  # Extract the acceleration from the value chain
-            gyro = value_chain[6:9]  # Extract the gyro from the value chain
+            acceleration = value_chain[8:11]  # Extract the acceleration from the value chain
+            gyro = value_chain[5:8]  # Extract the gyro from the value chain
             pressure = value_chain[3]  # Extract the pressure from the value chain
             temperature = value_chain[2]  # Extract the temperature from the value chain
-            ppm = value_chain[5]  # Extract the PPM from the value chain
             humidity = value_chain[1]  # Extract the humidity from the value chain
 
             # Update graphs
@@ -381,7 +375,6 @@ class FlightMonitoringGUI:
             self.gyro.update(*gyro)  # Update the gyro graph
             self.pressure.update(pressure)  # Update the pressure graph
             self.temperature.update(temperature)  # Update the temperature graph
-            self.ppm.update(ppm)  # Update the PPM graph
             self.humidity.update(humidity)  # Update the humidity graph
 
             # Save data to the database
