@@ -114,7 +114,7 @@ class DataAcquisitionThread(QThread):
                     print(f"ValueError during conversion: {e}, Data: {str_value_chain}")  # Print the error message and the data
                     continue  # Skip this iteration if conversion fails
 
-                if value_chain.size >= 12:  # Check if the value chain has at least 12 elements
+                if value_chain.size == 11:  # Check if the value chain has 11 elements
                     self.data_worker.data_received.emit(value_chain.tolist())  # Emit the data_received signal with the value chain as a list
 
             except Exception as e:  # Handle other exceptions
@@ -354,9 +354,6 @@ class FlightMonitoringGUI:
 
     def update_graphs(self, value_chain):
         """Update the graphs with new data. This runs in the *main* thread."""
-        if len(value_chain) < 12:  # Check if the value chain has at least 12 elements
-            print("Incomplete data received.")  # Print a message if the data is incomplete
-            return  # Return from the method
 
         try:
             # Extract data
@@ -380,8 +377,8 @@ class FlightMonitoringGUI:
             # Save data to the database
             self.data_base.store_data(value_chain)  # Store the data in the database
 
-        except (IndexError, ValueError) as e:  # Handle IndexError and ValueError exceptions
-            print(f"Error updating graphs: {e}")  # Print the error message
+        except Exception as e:  # Handle IndexError and ValueError exceptions
+            logging.warning(f"Error updating graphs: {e}")  # Print the error message
 
     def run(self):
         """Runs the application event loop."""

@@ -84,11 +84,10 @@ class Communication:
                 value = self.ser.readline()
                 decoded_bytes = value.decode("utf-8").strip()
                 value_chain = decoded_bytes.split(",")
-
                 try:
                     value_chain = [float(x) for x in value_chain]
                 except ValueError:
-                    logging.warning(f"Invalid data format received: {decoded_bytes}")
+                    logging.warning(f"Invalid data format received: {value_chain}")
                     return []
 
                 return value_chain
