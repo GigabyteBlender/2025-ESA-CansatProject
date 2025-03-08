@@ -35,7 +35,6 @@ class PortSelectionDialog(QDialog):
         """Initializes the PortSelectionDialog."""
         super().__init__()  # Call the constructor of the parent class (QDialog)
         self.setWindowTitle("Select Serial Port")  # Set the title of the dialog
-        self.setFixedSize(600, 400)  # Set the fixed size of the dialog
         self.selected_port = None  # Initialize the selected_port to None
 
         main_layout = QVBoxLayout(self)  # Create a vertical layout for the dialog
