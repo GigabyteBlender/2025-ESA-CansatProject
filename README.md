@@ -29,5 +29,8 @@ This project comprehensively explores various aspects of building and managing a
 - **Purpose**: To manage the project timeline, resources, and team collaboration.
 - **Learning Outcomes**: Project management skills, teamwork, and effective communication.
 
+## Photo from the day of the launch
 ![Photo](ProjectImages/img.jpg)
+
+## Conclusion
 Working on this project, I have gained hands-on experience in multiple disciplines, including engineering, programming, and project management, which I believe are essential for a successful career in technology and science.
