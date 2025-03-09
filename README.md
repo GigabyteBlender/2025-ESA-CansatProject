@@ -4,7 +4,10 @@ This project comprehensively explores various aspects of building and managing a
 
 ## 1. Hardware Design
 - **Purpose**: To design and assemble the physical components of the CanSat.
-- **Learning Outcomes**: Understanding of electronics, circuit design, and hardware integration.
+- **Learning Outcomes**: Understanding electronics, circuit design, and hardware integration. also learnt how to use 3d modelling software (Blender in this case) to design the body of the Cansat
+
+## Photo of the 3D model
+![Photo](ProjectImages/img2.jpg)
 
 ## 2. Software Development
 - **Purpose**: To develop software to control the CanSat and process data.
@@ -12,7 +15,7 @@ This project comprehensively explores various aspects of building and managing a
 
 ## 3. Data Acquisition
 - **Purpose**: To collect and store data from various sensors on the CanSat.
-- **Learning Outcomes**: Knowledge of sensor integration, data logging, and telemetry.
+- **Learning Outcomes**: Sensor integration, data logging, and telemetry knowledge.
 
 ## Example of data collection using the software I made
 ![Video](ProjectImages/vid.mov)
