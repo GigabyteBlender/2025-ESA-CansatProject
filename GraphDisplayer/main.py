@@ -365,12 +365,12 @@ class FlightMonitoringGUI:
             humidity = value_chain[1]  # Extract the humidity from the value chain
 
             # Update graphs
-            self.altitude.update(altitude)  # Update the altitude graph
+            self.altitude.update(altitude-200)  # Update the altitude graph
             self.time.update(time)  # Update the time graph
             self.acceleration.update(*acceleration)  # Update the acceleration graph
             self.gyro.update(*gyro)  # Update the gyro graph
             self.pressure.update(pressure)  # Update the pressure graph
-            self.temperature.update(temperature)  # Update the temperature graph
+            self.temperature.update(temperature-5)  # Update the temperature graph
             self.humidity.update(humidity)  # Update the humidity graph
 
             # Save data to the database
