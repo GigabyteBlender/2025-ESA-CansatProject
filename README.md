@@ -14,6 +14,9 @@ This project comprehensively explores various aspects of building and managing a
 - **Purpose**: To collect and store data from various sensors on the CanSat.
 - **Learning Outcomes**: Knowledge of sensor integration, data logging, and telemetry.
 
+## Example of data collection using the software I made
+![Video](ProjectImages/vid.mov)
+
 ## 4. Communication Systems
 - **Purpose**: To establish reliable communication between the CanSat and the ground station.
 - **Learning Outcomes**: Understanding of RF communication, signal processing, and networking.
