@@ -11,7 +11,7 @@ cs = digitalio.DigitalInOut(board.GP6)  # Chip select
 reset = digitalio.DigitalInOut(board.GP7)  # Reset pin
 
 # Initialize RFM9x radio
-rfm9x = adafruit_rfm9x.RFM9x(spi, cs, reset, 433.0)  # (spi, cs, reset, frequency)
+rfm9x = adafruit_rfm9x.RFM9x(spi, cs, reset, 430.0)  # (spi, cs, reset, frequency)
 
 def send(message):
     # Send a message
